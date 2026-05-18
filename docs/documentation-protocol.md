@@ -1,6 +1,6 @@
 # Protocolo de documentación
 
-Este proyecto se desarrolló bajo el protocolo de documentación propio del autor, replicado cross-proyecto en 13+ proyectos del ecosistema. **La documentación es activo de primera clase, no afterthought.**
+Este proyecto se desarrolló bajo el protocolo de documentación propio del autor, replicado cross-proyecto en múltiples proyectos del ecosistema. **La documentación es activo de primera clase, no afterthought.**
 
 > Este case-study es **anonimizado**. Los nombres del cliente BPO, de los sub-clientes B2C verticales, del stack comercial específico de telefonía heredada, las IPs de infraestructura y los volúmenes absolutos del negocio del cliente se omiten. El protocolo descrito es el mismo aplicado al proyecto real entregado bajo acuerdo de confidencialidad.
 

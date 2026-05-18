@@ -484,7 +484,7 @@ Los retos técnicos resueltos (concurrencia transaccional · webhooks autenticad
 
 ## Sistema operativo de ingeniería del autor
 
-Este proyecto se desarrolló bajo el sistema operativo de ingeniería propio del autor, replicado cross-proyecto en 13+ proyectos del ecosistema:
+Este proyecto se desarrolló bajo el sistema operativo de ingeniería propio del autor, replicado cross-proyecto en múltiples proyectos del ecosistema:
 
 - **Automation Engineering Protocol** — stage-gate horizontal de cambio: change-spec → guard layer → release train → rollback playbook.
 - **Prompt Engineering Protocol** — diseño modular: required/optional/exclusion keywords + patterns regex + confidence scoring + anti-echo + whitelist + schema JSON validation + contratos formales prompt-tool-payload (C1/C2/C3).
