@@ -1,0 +1,99 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#2962FF', 'secondaryColor': '#00C853', 'tertiaryColor': '#FF6D00'}}}%%
+
+flowchart TB
+    subgraph webapp["Voice AI Configuration Platform"]
+        subgraph frontend["Frontend Tier (Next.js 14 App Router)"]
+            COMM["/comercial<br/>config form<br/>+ 3 templates"]
+            ADMIN_UI["/admin<br/>NextAuth.js<br/>+ audit · metrics"]
+            PUBLIC["/[slug]<br/>24h public access<br/>+ SMS gate"]
+        end
+
+        subgraph backend["Backend Tier (Next.js API Routes)"]
+            CREATE_API["POST /api/demos<br/>atomic transaction<br/>SELECT FOR UPDATE"]
+            ADMIN_API["/api/admin/*<br/>auth required<br/>metrics · cleanup"]
+            SMS_API["/api/sms/<br/>verify-otp<br/>HttpOnly cookie"]
+            METRICS_API["/api/admin/<br/>elevenlabs/metrics<br/>usage tracking"]
+        end
+
+        subgraph templates["Template Tier"]
+            TPL_F1["templates.ts<br/>OpenAI Realtime<br/>(triaje · citas)"]
+            TPL_F2["templates_eleven.ts<br/>ElevenLabs<br/>(3 agents)"]
+            SANITIZE["sanitizeForPrompt()<br/>defensive validator"]
+        end
+
+        subgraph contracts["Contract Validator Tier"]
+            C1["C1 Completeness<br/>prompt -> tools"]
+            C2["C2 Coherence<br/>schema -> payload"]
+            C3["C3 No Orphans<br/>payload -> schema"]
+        end
+
+        subgraph data["Data Access Tier"]
+            POOL["mysql2 pool<br/>(10 conns reusable)"]
+            SSH["ssh2-promise<br/>(retry logic)"]
+            ORPHANS["external_resource_retries<br/>retry table"]
+        end
+
+        subgraph obs["Observability Tier"]
+            AUDIT[("Audit log<br/>(append-only)")]
+            ALERTS["Email alerts<br/>(trunks ≤ 4 · quota ≥ 70%)"]
+            CRON["Cleanup cron<br/>(expired demos · orphans retry)"]
+        end
+    end
+
+    subgraph external["External Systems"]
+        EXT_OPENAI["OpenAI<br/>Realtime API"]
+        EXT_EL["ElevenLabs<br/>Conv API + KB"]
+        EXT_VOZIP["Legacy SIP PBX<br/>(legacy PBX)"]
+        EXT_N8N["N8N<br/>(tools webhooks<br/>Basic Auth)"]
+        EXT_GCAL["Google Calendar<br/>(multi-SA pool)"]
+        EXT_SMS["SMS Gateway"]
+        EXT_MYSQL[("MySQL<br/>(VPS cliente)")]
+    end
+
+    COMM --> CREATE_API
+    CREATE_API --> TPL_F1
+    CREATE_API --> TPL_F2
+    TPL_F1 --> SANITIZE
+    TPL_F2 --> SANITIZE
+    CREATE_API --> C1
+    C1 --> C2
+    C2 --> C3
+    C3 --> POOL
+    POOL --> SSH
+    SSH <--> EXT_MYSQL
+    EXT_MYSQL <-->|read config| EXT_VOZIP
+    EXT_VOZIP <-->|F1 WebRTC| EXT_OPENAI
+    EXT_VOZIP <-->|F2 SIP BYOC| EXT_EL
+    EXT_OPENAI -->|tool call| EXT_N8N
+    EXT_EL -->|tool call| EXT_N8N
+    EXT_N8N -->|book| EXT_GCAL
+    EXT_N8N -.->|on fail| ORPHANS
+    PUBLIC --> SMS_API
+    SMS_API <--> EXT_SMS
+    ADMIN_UI --> ADMIN_API
+    ADMIN_API --> METRICS_API
+    METRICS_API <--> EXT_EL
+    CREATE_API --> AUDIT
+    METRICS_API --> ALERTS
+    CRON --> ORPHANS
+
+    classDef front fill:#FF6D00,stroke:#FF9100,color:white
+    classDef back fill:#2962FF,stroke:#1E88E5,color:white
+    classDef tpl fill:#7C4DFF,stroke:#651FFF,color:white
+    classDef contract fill:#D32F2F,stroke:#B71C1C,color:white
+    classDef datac fill:#388E3C,stroke:#1B5E20,color:white
+    classDef obs fill:#00BFA5,stroke:#1DE9B6,color:white
+    classDef external fill:#757575,stroke:#9E9E9E,color:white
+
+    class COMM,ADMIN_UI,PUBLIC front
+    class CREATE_API,ADMIN_API,SMS_API,METRICS_API back
+    class TPL_F1,TPL_F2,SANITIZE tpl
+    class C1,C2,C3 contract
+    class POOL,SSH,ORPHANS datac
+    class AUDIT,ALERTS,CRON obs
+    class EXT_OPENAI,EXT_EL,EXT_VOZIP,EXT_N8N,EXT_GCAL,EXT_SMS,EXT_MYSQL external
+
+%% Notes
+%% 6 tiers internos (frontend · backend · templates · contracts · data · obs).
+%% Contratos formales C1/C2/C3 entre prompt-tool-payload como invariantes testables.
+%% Orphans table para reconciliacion eventual con APIs externas no transaccionales.

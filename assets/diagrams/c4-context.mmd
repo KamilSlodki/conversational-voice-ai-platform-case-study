@@ -1,0 +1,50 @@
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#2962FF', 'secondaryColor': '#00C853', 'tertiaryColor': '#FF6D00'}}}%%
+
+flowchart TB
+    subgraph actors["Actors"]
+        COMERCIAL["Comercial B2B<br/>(configura demo &lt;2min)"]
+        LEAD["Lead final B2C<br/>(llama al numero geografico)"]
+        ADMIN["Operador BPO<br/>(panel admin · audit)"]
+    end
+
+    subgraph platform["Voice AI Configuration Platform"]
+        APP["Web App<br/>Next.js 14 App Router<br/>(comercial · admin · publico)"]
+    end
+
+    subgraph ext["External Systems"]
+        OPENAI["OpenAI Realtime<br/>(gpt-4o-realtime)"]
+        EL["ElevenLabs<br/>Conversational AI<br/>+ Knowledge Base nativa"]
+        VOZIP["Legacy SIP PBX<br/>(SIP trunks · dialplan)"]
+        N8N["N8N Workflow Engine<br/>(tools webhooks)"]
+        GCAL["Google Calendar<br/>(Multi-SA pool)"]
+        SMS["SMS Gateway<br/>(OTP validation)"]
+        MYSQL["MySQL<br/>(VPS cliente · SSH tunnel)"]
+    end
+
+    COMERCIAL -->|configura demo| APP
+    ADMIN -->|gestiona · audita| APP
+    APP <-->|persist · query| MYSQL
+    APP <-->|provisioning F2| EL
+    APP -->|configura voice_agents| MYSQL
+    MYSQL <-->|lee config| VOZIP
+    LEAD -->|llama numero| VOZIP
+    VOZIP -->|F1: stream WebRTC| OPENAI
+    VOZIP -->|F2: SIP BYOC TCP| EL
+    OPENAI -->|tool calls| N8N
+    EL -->|tool calls| N8N
+    N8N -->|book appointment| GCAL
+    APP -->|OTP gate| SMS
+    LEAD -->|verifica OTP| SMS
+
+    classDef actor fill:#7C4DFF,stroke:#651FFF,color:white
+    classDef platform fill:#2962FF,stroke:#1E88E5,color:white
+    classDef external fill:#757575,stroke:#9E9E9E,color:white
+
+    class COMERCIAL,LEAD,ADMIN actor
+    class APP platform
+    class OPENAI,EL,VOZIP,N8N,GCAL,SMS,MYSQL external
+
+%% Notes
+%% Sistema voice AI multi-engine con coexistencia OpenAI Realtime (F1)
+%% y ElevenLabs Conversational AI (F2) sin modificar PBX legacy.
+%% SIP BYOC enterprise como mecanismo de integracion oficial.
